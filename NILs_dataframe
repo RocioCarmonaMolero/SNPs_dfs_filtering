@@ -1,0 +1,78 @@
+Having a NILs dataframe with the following colums:
+·Chromosome
+·Position in the chromosome
+·Reference nucleotide/s
+·Alternative nucleotide/s
+·Annotation
+·Annotation_impact (HIGH > MODERATE > LOW > MODIFIER)
+·Gene_ID
+·Feature_type
+·Feature_ID
+·Transcript_Biotype
+·Rank (total numer of exon/intron in the transcript)
+·HGVS.c (variant in HGVS annotation, DNA level)
+·HGVS.p (if variant is coding, this field contains the variant HGVS notation, protein level)
+·cDNA.pos/cDNA.length (position in cDNA and transcripts cDNA length, one based)
+·CDS.pos/CDS.length (position and number of coding bases; one based, including START and STOP codons)
+·AA.pos/AA.length (position and number of AA; one based, including START but not STOP)
+·Distance (Up/ Downstream: distance to the first/last codon)
+·Error/Warnings (select variants in transcripts without error/warnings)
+·AC (in a large group of samples, to see how many altrnative alleles there are)
+·AF (to see the alternative allele frequency of the variant in this group)
+·BaseQRankSum (unbiased = good quality positions have values close to 0)
+·DP (unfiltered read depth across all samples to exclude samples with an overall low coverage)
+·ReadPosRankSum (unbiased = good quality positions have values close to 0; across all samples)
+·[sample]_GT (diploid genotype)
+·[sample]_GQ (genotype quality; select for GQ >= 20 to include only confident positions)
+
+
+
+#filter by Genotype Quality >=20 without dplyr library functions takes long
+NILs_df_1 <- data.frame()
+for(i in 1:nrow(NILs_df)){
+  if(NILs_df$AN0205_GQ[i]>=20 && NILs_df$AN0207_GQ[i]>=20){
+    NILs_df_1 <- rbind(NILs_df_1, NILs_df[i,])
+  }
+  NILs_df_1
+}
+
+
+library(dplyr)
+#filter by Genotype Quality >=20, Dplyr library  
+NILs_df %>%
+  filter(AN0205_GQ >= 20, AN0207_GQ >= 20) -> NILs_df_1
+
+
+#remove intergenic_region from Annotation lines
+NILs_df_1 %>%
+  filter(!Annotation %in% "intergenic_region") ->NILs_df_1
+  
+
+#Select those with Annotation_impact HIGH or MODERATE
+NILs_df_1 %>%
+  filter(Annotation_Impact %in% c("MODERATE", "HIGH")) ->NILs_df_2
+
+
+#filter by AN0205 genotypes 0/0 or 0/1
+NILs_df_2 %>%
+  filter(AN0205_GT %in% c("0/0", "0/1", "1/0")) -> NILs_df_3
+
+
+#remove AN0207 genotypes 0/0 
+NILs_df_3 %>%
+  filter(AN0207_GT != "0/0") -> NILs_df_4
+
+
+#count the distribution of SNPs along the chromosomes
+NILs_df_3 %>%
+  count(CHROM, AN0207_GT)
+  
+NILs_df_4 %>%
+  count(CHROM) 
+
+#change chromosomes name
+filt_NFTP3[filt_NFTP3=="NC_021160.1"]<-"1"
+
+#to separate chromomes
+filt_NFTP3 %>%
+  filter(CHROM == 2) -> CHR2_df
