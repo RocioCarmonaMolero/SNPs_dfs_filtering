@@ -69,10 +69,29 @@ NILs_df_3 %>%
   
 NILs_df_4 %>%
   count(CHROM) 
-
+  
 #change chromosomes name
 filt_NFTP3[filt_NFTP3=="NC_021160.1"]<-"1"
 
 #to separate chromomes
 filt_NFTP3 %>%
   filter(CHROM == 2) -> CHR2_df
+  
+  
+RESUMEN:
+
+
+#resumen
+NILs_df %>%
+  filter(AN0205_GQ >= 20, AN0207_GQ >= 20,
+         !Annotation %in% "intergenic_region",
+         Annotation_Impact %in% c("MODERATE", "HIGH"),
+         AN0205_GT %in% c("0/0", "0/1", "1/0"),
+         AN0207_GT != "0/0",
+         ERRORS.WARNINGS.INFO == "") -> NILs_df_5
+         
+         
+        
+NILs_df_5 %>%
+  filter(CHROM %in% c(1,2,3,4,5,6,7,8)) -> NILs_df_5
+
